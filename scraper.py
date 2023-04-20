@@ -1,12 +1,27 @@
 from requests import get, codes 
 from bs4 import BeautifulSoup
+import json
+
+def get_element(ancestor, selector = None, attribute = None, return_list = False):
+    try:
+        if return_list:
+           return [tag.text.strip() for tag in opinions_select]
+        if not selector and attribute:
+            return ancestor[attribute]
+        if attribute:
+            return  ancestor.select_one(selector)[attribute].strip()
+        return  ancestor.select_one(selector).text.strip()
+    except (AttributeError, TypeError):
+        return None
+    
 # product_code = input("Please enter product code: ")
 # product_code = "138536499"
 product_code = "138536499"
 #url = "https://www.ceneo.pl/" + product_code + "tab=reviews"
 #url = "https://www.ceneo.pl/" + product_code + "tab=reviews", format(product_code)
 url = f"https://www.ceneo.pl/{product_code}#tab=reviews"
-response = get(url)
+while url:
+    response = get(url)
 if response.status_code == codes['ok']:
     page_dom = BeautifulSoup(response.text, "html.parser")
     try:
@@ -17,34 +32,11 @@ if response.status_code == codes['ok']:
         all_opinions = []
         opinions = page_dom.select("div.js_product-review")
         for opinion in opinions:
-            opinion_id = opinion["data-entry-id"]
-            author = opinion.select_one("span.user-post__author-name").text.strip()
-            recommendation = opinion.select_one("span.user-post__author-recomendation > em").text.strip()
-            score = opinion.select_one("span.user-post__score-count").text.strip()
-            content = opinion.select_one("div.user-post__text").text.strip()
-            pros = opinion.select_one("div.review-feature__col:contains('+') + div.review-feature__item-list").text.strip()
-            pros = [p.text.strip() for c in pros]
-            cons = opinion.select_one("div.review-feature__col:contains('-') + div.review-feature__item-list").text.strip()
-            cons = [p.text.strip() for c in cons]
-            upvote = opinion.select_one("").text.strip()
-            downvote = opinion.select_one("").text.strip()
-            helpful = opinion.select_one("button.vote-yes > span").text.strip()
-            unhelpful = opinion.select_one("button.vote-no > span").text.strip()
-            posted = opinion.select_one("span.user-post_published > time:nth-child(1")["datetime"]
-            try:
-                purchased = opinion.select_one("span.user-post_published > time:nth-child(2")["datetime"]
-            except TypeError:
-                purchased = None
-            "opinion_id": opinion_id
-            "author": author
-            "recommendation": recommendation
-            "score": score
-            "content": content
-            "pros": pros
-            "cons": cons
-            "helpful": helpful
-            "unhelpful": unhelpful
-            "published_at": published
-            "purchased_at": purchased
-    
-
+            single_opinion = {}
+            for key, value in selectors.items():
+                single_opinion[key] = get_element(opinion, *value)
+            all_opinions.append(single_opinion)
+    try: 
+        url = "https://www.ceneo.pl" + get_element(page_dom, "a.pagination_next, "href")
+        with open(f"./opinions/{product_code}.json", "w", encoding="UTF-8") as jf
+                    json.dumps(all_opinions, jf, indent=4, ensure_ascii=False)
